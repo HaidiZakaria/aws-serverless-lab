@@ -4,31 +4,11 @@ provider "aws" {
 
 resource "aws_s3_bucket" "frontend" {
   bucket = var.bucket_name
+  acl    = "public-read"
 
   website {
     index_document = "index.html"
   }
-
-  tags = {
-    Name = "ServerlessFrontend"
-  }
-}
-
-resource "aws_s3_bucket_policy" "public_read_access" {
-  bucket = aws_s3_bucket.frontend.id
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Sid       = "PublicReadGetObject",
-        Effect    = "Allow",
-        Principal = "*",
-        Action    = "s3:GetObject",
-        Resource  = "${aws_s3_bucket.frontend.arn}/*"
-      }
-    ]
-  })
 }
 
 resource "aws_dynamodb_table" "items" {
@@ -44,15 +24,18 @@ resource "aws_dynamodb_table" "items" {
 
 resource "aws_iam_role" "lambda_exec" {
   name = "lambda_exec_role"
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
-    Statement = [{
-      Action = "sts:AssumeRole",
-      Effect = "Allow",
-      Principal = {
-        Service = "lambda.amazonaws.com"
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
       }
-    }]
+    ]
   })
 }
 
@@ -63,6 +46,7 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 
 resource "aws_lambda_function" "backend" {
   filename         = "lambda_function_payload.zip"
+  function_name    = "hello_lambda"   # ✅ Added as required
   role             = aws_iam_role.lambda_exec.arn
   handler          = "index.handler"
   runtime          = "nodejs18.x"
@@ -75,10 +59,10 @@ resource "aws_apigatewayv2_api" "api" {
 }
 
 resource "aws_apigatewayv2_integration" "lambda_integration" {
-  api_id                = aws_apigatewayv2_api.api.id
-  integration_type      = "AWS_PROXY"
-  integration_uri       = aws_lambda_function.backend.invoke_arn
-  integration_method    = "POST"
+  api_id                 = aws_apigatewayv2_api.api.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.backend.invoke_arn
+  integration_method     = "POST"
   payload_format_version = "2.0"
 }
 
