@@ -63,7 +63,6 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 
 resource "aws_lambda_function" "backend" {
   filename         = "lambda_function_payload.zip"
-  function_name    = "hello_lambda"
   role             = aws_iam_role.lambda_exec.arn
   handler          = "index.handler"
   runtime          = "nodejs18.x"
