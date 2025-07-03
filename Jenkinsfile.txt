@@ -2,20 +2,20 @@ pipeline {
     agent any
 
     environment {
-        AWS_ACCESS_KEY_ID = credentials('aws-access-key')
+        AWS_ACCESS_KEY_ID     = credentials('aws-access-key')
         AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/YOUR_USERNAME/aws-serverless-lab.git'
+                git branch: 'main', url: 'https://github.com/HaidiZakaria/aws-serverless-lab.git'
             }
         }
 
         stage('Zip Lambda') {
             steps {
-                bat 'powershell Compress-Archive -Path lambda\index.js -DestinationPath lambda_function_payload.zip -Force'
+                bat 'powershell Compress-Archive -Path lambda\\index.js -DestinationPath lambda_function_payload.zip -Force'
             }
         }
 
